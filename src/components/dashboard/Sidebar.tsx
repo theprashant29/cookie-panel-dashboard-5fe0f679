@@ -8,7 +8,10 @@ import {
   Settings, 
   ChevronLeft, 
   ChevronRight,
-  LogOut 
+  LogOut,
+  ArrowRightLeft,
+  X,
+  FileCode
 } from 'lucide-react';
 
 interface SidebarLinkProps {
@@ -90,6 +93,34 @@ export const Sidebar: React.FC = () => {
           label="Cookies" 
           collapsed={collapsed} 
         />
+        
+        {/* Rule management links */}
+        <div className={cn(
+          'mt-4 mb-2 px-3',
+          collapsed ? 'text-center' : 'text-left'
+        )}>
+          <span className="text-xs font-medium text-muted-foreground">RULES</span>
+        </div>
+        
+        <SidebarLink 
+          to="/redirect-rules" 
+          icon={<ArrowRightLeft size={18} />} 
+          label="Redirect Rules" 
+          collapsed={collapsed} 
+        />
+        <SidebarLink 
+          to="/cancel-rules" 
+          icon={<X size={18} />} 
+          label="Cancel Rules" 
+          collapsed={collapsed} 
+        />
+        <SidebarLink 
+          to="/custom-rules" 
+          icon={<FileCode size={18} />} 
+          label="Custom Rules" 
+          collapsed={collapsed} 
+        />
+        
         <SidebarLink 
           to="/settings" 
           icon={<Settings size={18} />} 
