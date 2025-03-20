@@ -1,6 +1,6 @@
 
-import React, { useState } from 'react';
-import { useParams } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { Sidebar } from '@/components/dashboard/Sidebar';
 import { Header } from '@/components/dashboard/Header';
 import { Label } from '@/components/ui/label';
@@ -15,17 +15,67 @@ import {
 } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { RulesList } from '@/components/rules/RulesList';
+import { toast } from 'sonner';
+import { createRule, getRuleById, updateRule, CancelRule } from '@/services/rulesService';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 const CancelRules = () => {
   const { id, action } = useParams();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const isListView = !id && !action;
+  const isNewView = action === 'new';
+  const isEditView = action === 'edit';
+  const isViewMode = action === 'view';
   
   const [formData, setFormData] = useState({
     ruleId: '',
-    rule_type: 'cancel',
-    status: 'active',
-    applyTo: 'specific_url',
+    rule_type: 'cancel' as const,
+    status: 'active' as const,
+    applyTo: 'specific_url' as const,
     cancelUrl: ''
+  });
+
+  // Fetch rule if editing or viewing
+  const { data: rule, isLoading: isLoadingRule } = useQuery({
+    queryKey: ['cancel-rule', id],
+    queryFn: () => getRuleById(id || ''),
+    enabled: !!id && (isEditView || isViewMode),
+  });
+
+  // Update form data when rule is loaded
+  useEffect(() => {
+    if (rule && (isEditView || isViewMode) && rule.rule_type === 'cancel') {
+      setFormData({
+        ruleId: rule.id,
+        rule_type: rule.rule_type,
+        status: rule.status,
+        applyTo: rule.applyTo,
+        cancelUrl: rule.cancelUrl
+      });
+    }
+  }, [rule, isEditView, isViewMode]);
+
+  // Create mutation
+  const createMutation = useMutation({
+    mutationFn: (data: Omit<CancelRule, 'id' | 'createdAt' | 'updatedAt'>) => 
+      createRule<CancelRule>(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['cancel-rules'] });
+      toast.success('Cancel rule created successfully');
+      navigate('/cancel-rules');
+    },
+  });
+
+  // Update mutation
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Partial<CancelRule> }) => 
+      updateRule<CancelRule>(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['cancel-rules'] });
+      toast.success('Cancel rule updated successfully');
+      navigate('/cancel-rules');
+    },
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -40,8 +90,33 @@ const CancelRules = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     console.log('Form data submitted:', formData);
-    // Here you would typically send the data to your backend
+    
+    const { ruleId, ...ruleData } = formData;
+    
+    if (isEditView && ruleId) {
+      updateMutation.mutate({ 
+        id: ruleId, 
+        data: ruleData 
+      });
+    } else {
+      createMutation.mutate(ruleData);
+    }
   };
+
+  // Loading state
+  if ((isEditView || isViewMode) && isLoadingRule) {
+    return (
+      <div className="flex h-screen">
+        <Sidebar />
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <Header title="Cancel Rules" />
+          <main className="flex-1 overflow-y-auto p-6">
+            <div className="text-center py-10">Loading rule...</div>
+          </main>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen">
@@ -58,7 +133,10 @@ const CancelRules = () => {
           ) : (
             <Card className="max-w-4xl mx-auto">
               <CardHeader>
-                <CardTitle>Manage Cancel Rule</CardTitle>
+                <CardTitle>
+                  {isNewView ? 'Add New Cancel Rule' : 
+                   isEditView ? 'Edit Cancel Rule' : 'View Cancel Rule'}
+                </CardTitle>
                 <CardDescription>
                   Define URLs that cancel cookie operations
                 </CardDescription>
@@ -74,6 +152,7 @@ const CancelRules = () => {
                       <Select
                         value={formData.status}
                         onValueChange={(value) => handleSelectChange('status', value)}
+                        disabled={isViewMode}
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Select status" />
@@ -90,6 +169,7 @@ const CancelRules = () => {
                       <Select
                         value={formData.applyTo}
                         onValueChange={(value) => handleSelectChange('applyTo', value)}
+                        disabled={isViewMode}
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Select where to apply" />
@@ -111,6 +191,7 @@ const CancelRules = () => {
                       value={formData.cancelUrl}
                       onChange={handleInputChange}
                       placeholder="Enter URL pattern to cancel"
+                      readOnly={isViewMode}
                     />
                     <div className="text-sm text-muted-foreground mt-2">
                       <p>Examples:</p>
@@ -122,7 +203,25 @@ const CancelRules = () => {
                     </div>
                   </div>
 
-                  <Button type="submit" className="w-full md:w-auto">Save Rule</Button>
+                  <div className="flex justify-between">
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      onClick={() => navigate('/cancel-rules')}
+                    >
+                      Cancel
+                    </Button>
+                    
+                    {!isViewMode && (
+                      <Button 
+                        type="submit" 
+                        className="ml-auto"
+                        disabled={createMutation.isPending || updateMutation.isPending}
+                      >
+                        {createMutation.isPending || updateMutation.isPending ? 'Saving...' : 'Save Rule'}
+                      </Button>
+                    )}
+                  </div>
                 </form>
               </CardContent>
             </Card>
