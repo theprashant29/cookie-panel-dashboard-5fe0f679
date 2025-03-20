@@ -111,15 +111,17 @@ export const getRuleById = async (id: string): Promise<Rule | null> => {
 };
 
 // Create a new rule
-export const createRule = async (rule: Omit<Rule, 'id' | 'createdAt' | 'updatedAt'>): Promise<Rule> => {
+export const createRule = async <T extends Rule>(ruleData: Omit<T, 'id' | 'createdAt' | 'updatedAt'>): Promise<T> => {
   try {
     await delay(600);
+    
+    const now = new Date().toISOString();
     const newRule = {
-      ...rule,
+      ...ruleData,
       id: `${mockRules.length + 1}`,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    } as Rule;
+      createdAt: now,
+      updatedAt: now
+    } as T;
     
     mockRules.push(newRule);
     toast.success('Rule created successfully');
@@ -132,7 +134,7 @@ export const createRule = async (rule: Omit<Rule, 'id' | 'createdAt' | 'updatedA
 };
 
 // Update an existing rule
-export const updateRule = async (id: string, rule: Partial<Rule>): Promise<Rule> => {
+export const updateRule = async <T extends Rule>(id: string, ruleData: Partial<T>): Promise<T> => {
   try {
     await delay(600);
     const index = mockRules.findIndex(r => r.id === id);
@@ -141,11 +143,15 @@ export const updateRule = async (id: string, rule: Partial<Rule>): Promise<Rule>
       throw new Error('Rule not found');
     }
     
+    const currentRule = mockRules[index];
+    
+    // Create updated rule while maintaining the correct rule_type
     const updatedRule = {
-      ...mockRules[index],
-      ...rule,
+      ...currentRule,
+      ...ruleData,
+      rule_type: currentRule.rule_type, // Ensure rule_type doesn't change
       updatedAt: new Date().toISOString()
-    };
+    } as T;
     
     mockRules[index] = updatedRule;
     toast.success('Rule updated successfully');
