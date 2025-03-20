@@ -26,9 +26,25 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/cookies" element={<Cookies />} />
+            
+            {/* Redirect Rules Routes */}
             <Route path="/redirect-rules" element={<RedirectRules />} />
+            <Route path="/redirect-rules/new" element={<RedirectRules />} />
+            <Route path="/redirect-rules/:id/edit" element={<RedirectRules />} />
+            <Route path="/redirect-rules/:id/view" element={<RedirectRules />} />
+            
+            {/* Cancel Rules Routes */}
             <Route path="/cancel-rules" element={<CancelRules />} />
+            <Route path="/cancel-rules/new" element={<CancelRules />} />
+            <Route path="/cancel-rules/:id/edit" element={<CancelRules />} />
+            <Route path="/cancel-rules/:id/view" element={<CancelRules />} />
+            
+            {/* Custom Rules Routes */}
             <Route path="/custom-rules" element={<CustomRules />} />
+            <Route path="/custom-rules/new" element={<CustomRules />} />
+            <Route path="/custom-rules/:id/edit" element={<CustomRules />} />
+            <Route path="/custom-rules/:id/view" element={<CustomRules />} />
+            
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
