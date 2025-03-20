@@ -7,7 +7,6 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import Cookies from "./pages/Cookies";
-import Settings from "./pages/Settings";
 import RedirectRules from "./pages/RedirectRules";
 import CancelRules from "./pages/CancelRules";
 import CustomRules from "./pages/CustomRules";
@@ -30,7 +29,6 @@ const App = () => (
             <Route path="/redirect-rules" element={<RedirectRules />} />
             <Route path="/cancel-rules" element={<CancelRules />} />
             <Route path="/custom-rules" element={<CustomRules />} />
-            <Route path="/settings" element={<Settings />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

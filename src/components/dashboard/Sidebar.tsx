@@ -5,7 +5,6 @@ import { cn } from '@/lib/utils';
 import { 
   LayoutDashboard, 
   Cookie, 
-  Settings, 
   ChevronLeft, 
   ChevronRight,
   LogOut,
@@ -118,13 +117,6 @@ export const Sidebar: React.FC = () => {
           to="/custom-rules" 
           icon={<FileCode size={18} />} 
           label="Custom Rules" 
-          collapsed={collapsed} 
-        />
-        
-        <SidebarLink 
-          to="/settings" 
-          icon={<Settings size={18} />} 
-          label="Settings" 
           collapsed={collapsed} 
         />
       </nav>
